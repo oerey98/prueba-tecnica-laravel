@@ -1,33 +1,41 @@
-# Dockerfile
-FROM php:8.2-fpm
+FROM php:8.1-fpm
 
-# Instala dependencias del sistema
+# Instalar extensiones necesarias, git, unzip, etc.
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
-    zip \
     unzip \
     libzip-dev \
-    libpng-dev \
     libonig-dev \
     libxml2-dev \
-    libpq-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath
+    zip \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql zip mbstring xml
 
-# Instala Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Instalar Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Crea y define el directorio de trabajo
-WORKDIR /var/www
-
-# Copia los archivos del proyecto al contenedor
+# Copiar archivos de la aplicación
+WORKDIR /var/www/html
 COPY . .
 
-# Asigna permisos
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 755 /var/www
+# Instalar dependencias PHP con composer
+RUN composer install --no-dev --optimize-autoloader
 
-# Expone el puerto
+# Permisos (ajusta según tu entorno)
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Exponer puerto (si usas PHP-FPM con otro contenedor o directo)
 EXPOSE 9000
 
-CMD ["php-fpm"]
+# Comando para esperar la base de datos y correr migraciones y seeders antes de iniciar PHP-FPM
+CMD bash -c "\
+  until nc -z -v -w30 mysql 3306; do \
+    echo 'Esperando a la base de datos...'; \
+    sleep 3; \
+  done; \
+  echo 'Ejecutando migraciones...'; \
+  php artisan migrate --force; \
+  echo 'Ejecutando seeders...'; \
+  php artisan db:seed --force; \
+  echo 'Iniciando PHP-FPM...'; \
+  php-fpm"
