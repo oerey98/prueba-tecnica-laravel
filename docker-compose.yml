@@ -14,11 +14,11 @@ services:
     environment:
       # Variables para conectar a base de datos externa (ajusta según sea necesario)
       DB_CONNECTION: mysql
-      DB_HOST: tu_host_bd_externo
+      DB_HOST: bgypvyun3ifoinznj3v4-mysql.services.clever-cloud.com
       DB_PORT: 3306
-      DB_DATABASE: tu_base_de_datos
-      DB_USERNAME: tu_usuario
-      DB_PASSWORD: tu_contraseña
+      DB_DATABASE: bgypvyun3ifoinznj3v4
+      DB_USERNAME: usqesj0cnciqcnol
+      DB_PASSWORD: DB_PASSWORD=69XchqnzGRQWpnhglPif
 
 networks:
   laravel_net:
