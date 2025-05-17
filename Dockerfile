@@ -1,7 +1,11 @@
 FROM php:8.2-fpm
 
-# Actualiza los índices y instala las dependencias necesarias sin recomendaciones extras
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Establecer locale para evitar warnings
+RUN apt-get update && apt-get install -y locales && locale-gen en_US.UTF-8
+
+# Actualizar repositorios y luego instalar paquetes (dividido para mejor debugging)
+RUN apt-get update
+RUN apt-get install -y \
     libzip-dev \
     libonig-dev \
     libxml2-dev \
@@ -12,31 +16,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     git \
     curl \
-    netcat \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    netcat
 
-# Configura GD con soporte para jpeg y freetype
+# Limpiar cache para imagen ligera
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configurar GD con soporte para freetype y jpeg
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-
-# Instala extensiones PHP necesarias
 RUN docker-php-ext-install pdo pdo_mysql zip mbstring xml gd
 
-# Copia composer desde la imagen oficial
+# Copiar composer desde la imagen oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Define directorio de trabajo y copia archivos
 WORKDIR /var/www/html
+
 COPY . .
 
-# Instala dependencias de PHP con composer
+# Instalar dependencias PHP sin desarrollo
 RUN composer install --no-dev --optimize-autoloader
 
-# Ajusta permisos para Laravel
+# Dar permisos a storage y cache
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Expone puerto de PHP-FPM
 EXPOSE 9000
 
-# Comando por defecto (ajústalo si usas otro entrypoint)
+# Ejecutar php-fpm
 CMD ["php-fpm"]
