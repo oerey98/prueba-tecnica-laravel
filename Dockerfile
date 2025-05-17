@@ -1,12 +1,6 @@
 FROM php:8.2-fpm
 
-RUN apt-get update && apt-get install -y locales && locale-gen en_US.UTF-8
-
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     libzip-dev \
     libonig-dev \
     libxml2-dev \
@@ -17,16 +11,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     git \
     curl \
-    netcat && \
-    rm -rf /var/lib/apt/lists/*
+    netcat
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install -j$(nproc) pdo pdo_mysql zip mbstring xml gd
+RUN docker-php-ext-install pdo pdo_mysql zip mbstring xml gd
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
-
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
@@ -35,4 +27,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+CMD bash -c "\
+  until nc -z -v -w30 mysql 3306; do \
+    echo 'Esperando base de datos...'; sleep 3; \
+  done; \
+  php artisan migrate --force; \
+  php artisan db:seed --force; \
+  php-fpm"
