@@ -9,24 +9,10 @@ services:
       - .:/var/www/html
     ports:
       - "9000:9000"
-    depends_on:
-      - mysql
     networks:
       - laravel_net
-
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: laravel_db
-      MYSQL_USER: laravel_user
-      MYSQL_PASSWORD: laravel_pass
-    ports:
-      - "3306:3306"
-    networks:
-      - laravel_net
+    # Asegúrate de que tus variables de entorno estén definidas
+    # o usa un archivo `.env` dentro del contenedor para conectar a la BD externa
 
 networks:
   laravel_net:
