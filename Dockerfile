@@ -1,6 +1,7 @@
 FROM php:8.2-fpm
 
-RUN apt-get update && apt-get install -y \
+# Actualiza los índices y instala las dependencias necesarias sin recomendaciones extras
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libzip-dev \
     libonig-dev \
     libxml2-dev \
@@ -11,29 +12,31 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
-    netcat
+    netcat \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
+# Configura GD con soporte para jpeg y freetype
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# Instala extensiones PHP necesarias
 RUN docker-php-ext-install pdo pdo_mysql zip mbstring xml gd
 
+# Copia composer desde la imagen oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Define directorio de trabajo y copia archivos
 WORKDIR /var/www/html
 COPY . .
 
+# Instala dependencias de PHP con composer
 RUN composer install --no-dev --optimize-autoloader
+
+# Ajusta permisos para Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Expone puerto de PHP-FPM
 EXPOSE 9000
 
-CMD bash -c "\
-  echo 'Esperando base de datos...'; \
-  until php artisan migrate:status > /dev/null 2>&1; do \
-    echo 'La base de datos aún no está lista...'; sleep 3; \
-  done; \
-  echo 'Ejecutando migraciones...'; \
-  php artisan migrate --force; \
-  echo 'Ejecutando seeders...'; \
-  php artisan db:seed --force; \
-  echo 'Iniciando PHP-FPM...'; \
-  php-fpm"
+# Comando por defecto (ajústalo si usas otro entrypoint)
+CMD ["php-fpm"]
