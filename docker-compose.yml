@@ -5,21 +5,12 @@ services:
     build:
       context: .
     container_name: laravel_app
-    volumes:
-      - .:/var/www/html
     ports:
-      - "9000:9000"
-    networks:
-      - laravel_net
+      - "80:80"
     environment:
-      # Variables para conectar a base de datos externa (ajusta según sea necesario)
       DB_CONNECTION: mysql
       DB_HOST: bgypvyun3ifoinznj3v4-mysql.services.clever-cloud.com
       DB_PORT: 3306
       DB_DATABASE: bgypvyun3ifoinznj3v4
       DB_USERNAME: usqesj0cnciqcnol
-      DB_PASSWORD: DB_PASSWORD=69XchqnzGRQWpnhglPif
-
-networks:
-  laravel_net:
-    driver: bridge
+      DB_PASSWORD: 69XchqnzGRQWpnhglPif
