@@ -11,8 +11,14 @@ services:
       - "9000:9000"
     networks:
       - laravel_net
-    # Asegúrate de que tus variables de entorno estén definidas
-    # o usa un archivo `.env` dentro del contenedor para conectar a la BD externa
+    environment:
+      # Variables para conectar a base de datos externa (ajusta según sea necesario)
+      DB_CONNECTION: mysql
+      DB_HOST: tu_host_bd_externo
+      DB_PORT: 3306
+      DB_DATABASE: tu_base_de_datos
+      DB_USERNAME: tu_usuario
+      DB_PASSWORD: tu_contraseña
 
 networks:
   laravel_net:
