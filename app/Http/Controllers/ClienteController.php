@@ -31,16 +31,14 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|alpha|max:255',
-            'apellido' => 'required|alpha|max:255',
+            'nombre' => ['required', 'regex:/^[\pL\s]+$/u', 'max:255'],
+            'apellido' => ['required', 'regex:/^[\pL\s]+$/u', 'max:255'],
             'cedula' => 'required|numeric|unique:clientes,cedula',
             'departamento' => 'required|string',
             'ciudad' => 'required|string',
             'celular' => 'required|numeric',
             'email' => 'required|email|unique:clientes,email',
             'habeas_data' => 'accepted',
-        ], [
-            'habeas_data.accepted' => 'Debes aceptar el tratamiento de datos',
         ]);
 
         Cliente::create([
@@ -109,6 +107,13 @@ class ClienteController extends Controller
                 }
             }
         }
+
+        foreach ($departamentos as &$municipios) {
+            sort($municipios);
+        }
+
+        // Ordenar departamentos alfabéticamente
+        ksort($departamentos);
 
         return $departamentos;
     }

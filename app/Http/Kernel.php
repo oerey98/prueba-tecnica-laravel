@@ -17,7 +17,6 @@ class Kernel extends HttpKernel
             VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
 
-            \App\Http\Middleware\NoCache::class,  // Si lo tienes creado para controlar cache
         ],
 
         'api' => [
